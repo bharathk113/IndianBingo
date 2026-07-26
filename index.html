@@ -320,7 +320,7 @@
                     key={idx}
                     onClick={() => onCellClick(idx, val)}
                     disabled={gamePhase === 'playing' && (!isMyTurn || isCrossed || !val)}
-                    className={`relative flex items-center justify-center rounded-lg sm:rounded-xl font-black text-lg sm:text-2xl transition-all duration-200 select-none overflow-hidden ${
+                    className={`relative flex items-center justify-center aspect-square rounded-lg sm:rounded-xl font-black text-lg sm:text-2xl transition-all duration-200 select-none overflow-hidden ${
                       gamePhase === 'setup'
                         ? isSelected ? 'bg-amber-500 text-slate-950 ring-2 ring-amber-300 scale-95 z-10 shadow-lg'
                         : val ? 'bg-slate-800 text-white border border-slate-700/80' : 'bg-slate-950/80 text-slate-600 border border-dashed border-slate-700'
@@ -444,7 +444,7 @@
 
               {activeTab === 'join' && (
                 <form onSubmit={(e) => { e.preventDefault(); if (joinCodeInput.trim()) onJoinRoom(joinCodeInput); }} className="flex flex-col gap-3">
-                  <input type="text" placeholder="Enter Room Code (e.g. bingo-4921)" value={joinCodeInput} onChange={e => setJoinCodeInput(e.target.value)} className="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-amber-400 font-black text-center uppercase" />
+                  <input type="text" placeholder="Enter Room Code (e.g. 49215)" value={joinCodeInput} onChange={e => setJoinCodeInput(e.target.value)} className="w-full px-3 py-2.5 bg-slate-950 border border-slate-700 rounded-lg text-amber-400 font-black text-center uppercase" />
                   <button type="submit" disabled={!joinCodeInput.trim() || connectionStatus === 'connecting'} className="w-full py-3 bg-emerald-500 text-slate-950 font-black rounded-lg disabled:opacity-50">
                     {connectionStatus === 'connecting' ? 'CONNECTING...' : 'JOIN GAME'}
                   </button>
@@ -516,6 +516,12 @@
         const myEval = evaluateGrid(grid, crossedNumbers);
 
         useEffect(() => {
+          if (gameMode === 'p2p' && connRef.current && connRef.current.open) {
+            connRef.current.send({ type: 'SYNC_STATE', count: myEval.count, isWin: myEval.isWin });
+          }
+        }, [myEval.count, myEval.isWin, gameMode]);
+
+        useEffect(() => {
           const params = new URLSearchParams(window.location.search);
           const roomParam = params.get('room');
           if (roomParam) {
@@ -536,14 +542,6 @@
               setOpponentLettersCount(oppLinesCount);
             }
 
-            if (playerEval.isWin || oppLinesCount >= 5) {
-              setGamePhase('gameover');
-              const playerWon = playerEval.isWin;
-              setIsWinner(playerWon); setIsGameOverModalOpen(true);
-              playSound(playerWon ? 'victory' : 'defeat');
-              return nextSet;
-            }
-
             if (wasMyMove) {
               setIsMyTurn(false);
               if (gameMode === 'ai') {
@@ -557,6 +555,15 @@
             } else {
               setIsMyTurn(true);
             }
+
+            if (playerEval.isWin || oppLinesCount >= 5) {
+              setGamePhase('gameover');
+              const playerWon = playerEval.isWin;
+              setIsWinner(playerWon); setIsGameOverModalOpen(true);
+              playSound(playerWon ? 'victory' : 'defeat');
+              return nextSet;
+            }
+
             return nextSet;
           });
         }, [grid, aiGrid, gameMode, opponentLettersCount]);
@@ -587,15 +594,33 @@
               setIsMyTurn(data.currentTurn === peerRoleRef.current);
             }
             else if (data.type === 'MARK_NUMBER') applyNumberCross(data.value, false);
+            else if (data.type === 'SYNC_STATE') {
+              setOpponentLettersCount(data.count);
+              if (data.isWin) {
+                setGamePhase('gameover'); setIsWinner(false); setIsGameOverModalOpen(true); playSound('defeat');
+              }
+            }
             else if (data.type === 'REMATCH_REQUEST') resetGameForRematch();
           });
 
-          connection.on('close', () => {
+          const handleDisconnect = () => {
             if (hasOpened) {
               setConnectionStatus('disconnected');
               alert('Opponent disconnected.');
+              hasOpened = false;
             }
-          });
+          };
+
+          connection.on('close', handleDisconnect);
+          
+          if (connection.peerConnection) {
+            connection.peerConnection.oniceconnectionstatechange = () => {
+              const state = connection.peerConnection.iceConnectionState;
+              if (state === 'disconnected' || state === 'failed' || state === 'closed') {
+                handleDisconnect();
+              }
+            };
+          }
           
           connection.on('error', (err) => {
             console.error('Connection error:', err);
@@ -605,7 +630,7 @@
 
         const handleHostRoom = () => {
           if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
-          const cleanCode = `bingo-${Math.floor(1000 + Math.random() * 9000)}`;
+          const cleanCode = `${Math.floor(10000 + Math.random() * 90000)}`;
           const peer = new Peer(cleanCode, PEER_CONFIG);
           peerRef.current = peer;
 

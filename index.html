@@ -92,6 +92,17 @@
     <script type="text/babel">
       const { useState, useEffect, useCallback, useRef } = React;
 
+      // STUN Server Config for reliable WebRTC ICE connections across networks
+      const PEER_CONFIG = {
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:global.stun.twilio.com:3478' }
+          ]
+        }
+      };
+
       // --- 1. GAME ENGINE & RULES ---
       const BINGO_LETTERS = ['B', 'I', 'N', 'G', 'O'];
 
@@ -547,14 +558,14 @@
         const handleJoinSubmit = (e) => {
           e.preventDefault();
           if (joinCodeInput.trim()) {
-            onJoinRoom(joinCodeInput.trim().toUpperCase());
+            onJoinRoom(joinCodeInput.trim().toLowerCase());
           }
         };
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
             <div className="relative w-full max-w-md bg-slate-900 border border-slate-700/80 rounded-2xl p-6 shadow-2xl">
-              <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white">✕</button>
+              <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-white font-bold text-lg">✕</button>
               <h2 className="font-extrabold text-xl text-white mb-4">Multiplayer & Game Mode</h2>
 
               <div className="grid grid-cols-3 gap-1 bg-slate-950/70 p-1.5 rounded-xl border border-slate-800 mb-6">
@@ -570,9 +581,11 @@
                   ) : (
                     <div className="flex flex-col gap-3 p-4 bg-slate-950/60 rounded-xl border border-slate-800 text-center">
                       <span className="text-xs text-slate-400 font-semibold uppercase">Room Code</span>
-                      <div className="font-black text-3xl text-amber-400 tracking-widest">{roomId}</div>
-                      <p className="text-xs text-emerald-400">{connectionStatus === 'connected' ? 'Peer Connected!' : 'Waiting for guest player to join...'}</p>
-                      <button onClick={handleCopyLink} className="py-2 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg">
+                      <div className="font-black text-3xl text-amber-400 tracking-widest uppercase">{roomId}</div>
+                      <p className={`text-xs font-semibold ${connectionStatus === 'connected' ? 'text-emerald-400' : 'text-amber-400 animate-pulse'}`}>
+                        {connectionStatus === 'connected' ? '✓ Peer Connected! Set your board & click Ready.' : '⏳ Waiting for guest player to join...'}
+                      </p>
+                      <button onClick={handleCopyLink} className="py-2.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold rounded-lg border border-slate-700 text-slate-200">
                         {copied ? '✓ Invite Link Copied!' : '📋 Copy Invite Link'}
                       </button>
                     </div>
@@ -584,14 +597,17 @@
                 <form onSubmit={handleJoinSubmit} className="flex flex-col gap-4">
                   <input
                     type="text"
-                    placeholder="Enter Room Code (e.g. BINGO-4921)"
+                    placeholder="Enter Room Code (e.g. bingo-4921)"
                     value={joinCodeInput}
-                    onChange={(e) => setJoinCodeInput(e.target.value.toUpperCase())}
+                    onChange={(e) => setJoinCodeInput(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl text-amber-400 font-black text-center text-lg uppercase focus:outline-none focus:border-amber-400"
                   />
-                  <button type="submit" disabled={!joinCodeInput.trim()} className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl">
-                    CONNECT & JOIN GAME
+                  <button type="submit" disabled={!joinCodeInput.trim() || connectionStatus === 'connecting'} className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl disabled:opacity-50">
+                    {connectionStatus === 'connecting' ? 'CONNECTING TO HOST...' : 'CONNECT & JOIN GAME'}
                   </button>
+                  {connectionStatus === 'error' && (
+                    <p className="text-xs text-red-400 text-center font-semibold">Could not connect to host. Please verify the room code.</p>
+                  )}
                 </form>
               )}
 
@@ -689,7 +705,7 @@
           const params = new URLSearchParams(window.location.search);
           const roomParam = params.get('room');
           if (roomParam) {
-            setInitialRoomCode(roomParam.toUpperCase());
+            setInitialRoomCode(roomParam.toLowerCase());
             setIsRoomModalOpen(true);
             setGameMode('p2p');
           }
@@ -746,10 +762,15 @@
           connRef.current = connection;
           peerRoleRef.current = role;
 
+          let hasOpened = false;
+
           connection.on('open', () => {
+            hasOpened = true;
             setConnectionStatus('connected');
             setGameMode('p2p');
             setOpponentName(role === 'host' ? 'Guest Player' : 'Host Player');
+            // Auto close modal when peer connects
+            setIsRoomModalOpen(false);
           });
 
           connection.on('data', (data) => {
@@ -767,35 +788,62 @@
           });
 
           connection.on('close', () => {
-            setConnectionStatus('disconnected');
-            alert('Opponent disconnected.');
+            if (hasOpened) {
+              setConnectionStatus('disconnected');
+              alert('Opponent disconnected from the room.');
+            }
+          });
+
+          connection.on('error', (err) => {
+            console.error('Peer connection error:', err);
+            setConnectionStatus('error');
           });
         };
 
         const handleHostRoom = () => {
-          if (peerRef.current) peerRef.current.destroy();
-          const code = `BINGO-${Math.floor(1000 + Math.random() * 9000)}`;
-          const peer = new Peer(code);
+          if (peerRef.current) {
+            try { peerRef.current.destroy(); } catch(e){}
+          }
+          const cleanCode = `bingo-${Math.floor(1000 + Math.random() * 9000)}`;
+          const peer = new Peer(cleanCode, PEER_CONFIG);
           peerRef.current = peer;
 
           peer.on('open', (id) => {
             setRoomId(id);
             setConnectionStatus('connecting');
+            peerRoleRef.current = 'host';
           });
 
           peer.on('connection', (conn) => {
             setupConnection(conn, 'host');
           });
+
+          peer.on('error', (err) => {
+            console.error('Host peer error:', err);
+            // If ID unavailable, retry with random ID
+            if (err.type === 'unavailable-id') {
+              handleHostRoom();
+            }
+          });
         };
 
         const handleJoinRoom = (code) => {
-          if (peerRef.current) peerRef.current.destroy();
-          const peer = new Peer();
+          if (peerRef.current) {
+            try { peerRef.current.destroy(); } catch(e){}
+          }
+          const cleanCode = code.trim().toLowerCase();
+          const peer = new Peer(PEER_CONFIG);
           peerRef.current = peer;
+          setConnectionStatus('connecting');
 
           peer.on('open', () => {
-            const conn = peer.connect(code, { reliable: true });
+            const conn = peer.connect(cleanCode, { reliable: true });
             setupConnection(conn, 'guest');
+          });
+
+          peer.on('error', (err) => {
+            console.error('Join peer error:', err);
+            setConnectionStatus('error');
           });
         };
 

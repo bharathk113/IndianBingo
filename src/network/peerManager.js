@@ -1,8 +1,15 @@
 import { Peer } from 'peerjs';
 
-/**
- * PeerManager handles serverless WebRTC connections via PeerJS
- */
+const PEER_CONFIG = {
+  config: {
+    iceServers: [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+      { urls: 'stun:global.stun.twilio.com:3478' }
+    ]
+  }
+};
+
 class PeerManager {
   constructor() {
     this.peer = null;
@@ -31,31 +38,19 @@ class PeerManager {
     }
   }
 
-  /**
-   * Helper to generate a short readable 6-character room code (e.g. "BINGO-4921")
-   */
   generateRoomCode() {
-    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-    let code = '';
-    for (let i = 0; i < 4; i++) {
-      code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return `BINGO-${code}`;
+    const randomNum = Math.floor(1000 + Math.random() * 9000);
+    return `bingo-${randomNum}`;
   }
 
-  /**
-   * Initialize Host Room
-   */
   createRoom(customCode = null) {
     this.destroy();
-    const code = customCode || this.generateRoomCode();
+    const code = (customCode || this.generateRoomCode()).toLowerCase();
     this.role = 'host';
     this.roomId = code;
 
     try {
-      this.peer = new Peer(code, {
-        debug: 1,
-      });
+      this.peer = new Peer(code, PEER_CONFIG);
 
       this.peer.on('open', (id) => {
         this.emit('room_created', { roomId: id });
@@ -69,7 +64,6 @@ class PeerManager {
 
       this.peer.on('error', (err) => {
         console.error('PeerJS Host Error:', err);
-        // If room ID is taken, fallback to random code
         if (err.type === 'unavailable-id') {
           this.createRoom();
         } else {
@@ -83,19 +77,14 @@ class PeerManager {
     return code;
   }
 
-  /**
-   * Join an existing Host Room
-   */
   joinRoom(hostRoomId) {
     this.destroy();
-    const cleanId = hostRoomId.trim().toUpperCase();
+    const cleanId = hostRoomId.trim().toLowerCase();
     this.role = 'guest';
     this.roomId = cleanId;
 
     try {
-      this.peer = new Peer({
-        debug: 1,
-      });
+      this.peer = new Peer(PEER_CONFIG);
 
       this.peer.on('open', () => {
         this.conn = this.peer.connect(cleanId, {
@@ -117,7 +106,10 @@ class PeerManager {
   setupConnectionListeners() {
     if (!this.conn) return;
 
+    let hasOpened = false;
+
     this.conn.on('open', () => {
+      hasOpened = true;
       this.emit('connected', { role: this.role, roomId: this.roomId });
     });
 
@@ -128,7 +120,9 @@ class PeerManager {
     });
 
     this.conn.on('close', () => {
-      this.emit('peer_disconnected');
+      if (hasOpened) {
+        this.emit('peer_disconnected');
+      }
     });
 
     this.conn.on('error', (err) => {
@@ -136,9 +130,6 @@ class PeerManager {
     });
   }
 
-  /**
-   * Send JSON message payload over WebRTC data channel
-   */
   send(payload) {
     if (this.conn && this.conn.open) {
       this.conn.send(payload);
@@ -147,9 +138,6 @@ class PeerManager {
     }
   }
 
-  /**
-   * Clean up Peer instance & connections
-   */
   destroy() {
     if (this.conn) {
       try {

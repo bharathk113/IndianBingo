@@ -6,18 +6,16 @@
     <title>Bingo 5x5</title>
     <meta name="description" content="Clean, modern, P2P Indian 5x5 Bingo" />
     
-    <!-- Clean Geometric Favicon -->
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%232563eb%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect width=%2218%22 height=%2218%22 x=%223%22 y=%223%22 rx=%222%22/><path d=%22M3 9h18M3 15h18M9 3v18M15 3v18%22/></svg>" />
 
-    <!-- Google Fonts: Inter for a clean modern look -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: { sans: ['Inter', 'sans-serif'] },
@@ -26,50 +24,37 @@
               'cross': 'cross 0.3s ease-out forwards',
             },
             keyframes: {
-              pop: {
-                '0%': { transform: 'scale(0.9)', opacity: '0.5' },
-                '100%': { transform: 'scale(1)', opacity: '1' },
-              },
-              cross: {
-                '0%': { transform: 'scale(2)', opacity: '0' },
-                '100%': { transform: 'scale(1)', opacity: '1' },
-              }
+              pop: { '0%': { transform: 'scale(0.9)', opacity: '0.5' }, '100%': { transform: 'scale(1)', opacity: '1' } },
+              cross: { '0%': { transform: 'scale(2)', opacity: '0' }, '100%': { transform: 'scale(1)', opacity: '1' } }
             }
           }
         }
       }
     </script>
 
-    <!-- Canvas Confetti -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-    <!-- PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
       html, body {
-        width: 100%;
-        height: 100%;
-        overflow: hidden; 
-        background-color: #f8fafc; /* slate-50 */
-        color: #0f172a; /* slate-900 */
-        margin: 0;
-        padding: 0;
+        width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0;
+        transition: background-color 0.3s, color 0.3s;
       }
-      /* Clean subtle shadows and borders instead of neon */
+      body { background-color: #f8fafc; color: #0f172a; }
+      .dark body { background-color: #09090b; color: #fafafa; }
+      
       .card-panel {
-        background: #ffffff;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        background: #ffffff; border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
       }
-      /* Enforce strict square sizes on grid buttons */
-      .bingo-cell {
-        aspect-ratio: 1 / 1;
+      .dark .card-panel {
+        background: #18181b; border: 1px solid #27272a;
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
       }
+      .bingo-cell { aspect-ratio: 1 / 1; }
     </style>
   </head>
   <body class="antialiased select-none">
@@ -78,17 +63,8 @@
     <script type="text/babel">
       const { useState, useEffect, useCallback, useRef } = React;
 
-      const PEER_CONFIG = {
-        config: {
-          iceServers: [
-            { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:global.stun.twilio.com:3478' }
-          ]
-        }
-      };
-
+      const PEER_CONFIG = { config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478' }] } };
       const BINGO_LETTERS = ['B', 'I', 'N', 'G', 'O'];
-
       const WINNING_LINE_PATTERNS = [
         { id: 'row-0', indices: [0, 1, 2, 3, 4], type: 'row', index: 0 },
         { id: 'row-1', indices: [5, 6, 7, 8, 9], type: 'row', index: 1 },
@@ -112,29 +88,18 @@
         }
         return numbers;
       }
-
-      function isValidGrid(grid) {
-        if (!Array.isArray(grid) || grid.length !== 25) return false;
-        const numSet = new Set(grid.filter(n => n !== null && n !== undefined && n >= 1 && n <= 25));
-        return numSet.size === 25;
-      }
-
+      function isValidGrid(grid) { return grid && grid.length === 25 && new Set(grid.filter(n => n)).size === 25; }
       function evaluateGrid(grid, crossedNumbers) {
         if (!grid || grid.length !== 25) return { completedLines: [], count: 0, letters: [], isWin: false };
         const crossedSet = crossedNumbers instanceof Set ? crossedNumbers : new Set(crossedNumbers);
-        const completedLines = WINNING_LINE_PATTERNS.filter(pattern =>
-          pattern.indices.every(idx => grid[idx] && crossedSet.has(grid[idx]))
-        );
+        const completedLines = WINNING_LINE_PATTERNS.filter(p => p.indices.every(idx => grid[idx] && crossedSet.has(grid[idx])));
         const count = completedLines.length;
-        const unlockedLetters = BINGO_LETTERS.slice(0, Math.min(5, count));
-        return { completedLines, count, letters: unlockedLetters, isWin: count >= 5 };
+        return { completedLines, count, letters: BINGO_LETTERS.slice(0, Math.min(5, count)), isWin: count >= 5 };
       }
-
       function getSmartAIMove(aiGrid, crossedNumbers) {
         const crossedSet = crossedNumbers instanceof Set ? crossedNumbers : new Set(crossedNumbers);
         const uncrossed = aiGrid.map((num, idx) => (num && !crossedSet.has(num) ? { num, idx } : null)).filter(Boolean);
         if (uncrossed.length === 0) return null;
-
         let bestScore = -1, bestMove = uncrossed[0].num;
         for (const { num, idx } of uncrossed) {
           let score = 0;
@@ -149,118 +114,92 @@
         return bestMove;
       }
 
-      // Audio Synthesis
       let audioCtx = null, isMutedGlobal = false;
       function getAudioContext() {
-        if (!audioCtx) {
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (AC) audioCtx = new AC();
-        }
+        if (!audioCtx) { const AC = window.AudioContext || window.webkitAudioContext; if (AC) audioCtx = new AC(); }
         if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
         return audioCtx;
       }
-
       function playSound(type) {
         if (isMutedGlobal) return;
-        const ctx = getAudioContext();
-        if (!ctx) return;
+        const ctx = getAudioContext(); if (!ctx) return;
         try {
           if (type === 'pop') {
             const osc = ctx.createOscillator(), gain = ctx.createGain();
             osc.type = 'sine'; osc.frequency.setValueAtTime(600, ctx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(1000, ctx.currentTime + 0.05);
             gain.gain.setValueAtTime(0.1, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.05);
           } else if (type === 'cross') {
             const osc = ctx.createOscillator(), gain = ctx.createGain();
             osc.type = 'triangle'; osc.frequency.setValueAtTime(200, ctx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(50, ctx.currentTime + 0.1);
             gain.gain.setValueAtTime(0.15, ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 0.1);
+            osc.connect(gain); gain.connect(ctx.destination); osc.start(); osc.stop(ctx.currentTime + 0.1);
           } else if (type === 'victory') {
-            [{f: 523.25, d: 0.15, delay: 0}, {f: 659.25, d: 0.15, delay: 0.15}, {f: 783.99, d: 0.15, delay: 0.3}, {f: 1046.5, d: 0.5, delay: 0.45}].forEach(({f,d,delay}) => {
+            [{f:523.25,d:0.15,delay:0},{f:659.25,d:0.15,delay:0.15},{f:783.99,d:0.15,delay:0.3},{f:1046.5,d:0.5,delay:0.45}].forEach(({f,d,delay}) => {
               const osc = ctx.createOscillator(), gain = ctx.createGain();
               osc.type = 'triangle'; osc.frequency.setValueAtTime(f, ctx.currentTime + delay);
               gain.gain.setValueAtTime(0.2, ctx.currentTime + delay); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + d);
-              osc.connect(gain); gain.connect(ctx.destination);
-              osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + d);
+              osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + delay); osc.stop(ctx.currentTime + delay + d);
             });
           } else if (type === 'defeat') {
-            [400, 350, 300, 250].forEach((freq, idx) => {
+            [400,350,300,250].forEach((freq, idx) => {
               const osc = ctx.createOscillator(), gain = ctx.createGain();
               osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.15);
               gain.gain.setValueAtTime(0.1, ctx.currentTime + idx * 0.15); gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.15 + 0.2);
-              osc.connect(gain); gain.connect(ctx.destination);
-              osc.start(ctx.currentTime + idx * 0.15); osc.stop(ctx.currentTime + idx * 0.15 + 0.2);
+              osc.connect(gain); gain.connect(ctx.destination); osc.start(ctx.currentTime + idx * 0.15); osc.stop(ctx.currentTime + idx * 0.15 + 0.2);
             });
           }
         } catch(e){}
       }
 
-      // Reusable Icons
-      const GridIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
-      );
-      const VolumeIcon = ({ muted }) => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          {muted ? (
-            <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></>
-          ) : (
-            <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></>
-          )}
-        </svg>
-      );
-      const UsersIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      );
-      const MonitorIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>
-      );
+      // Icons
+      const GridIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>;
+      const UsersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
+      const MonitorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>;
+      const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>;
+      const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
+      const TrophyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
+      const VolumeIcon = ({ muted }) => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{muted ? <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></> : <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></>}</svg>;
 
-      // Components
       function BingoHeader({ playerLetters, opponentLettersCount, isMyTurn, gamePhase, opponentName, isMuted, onToggleMute }) {
         return (
           <div className="w-full max-w-md mx-auto flex flex-col gap-3 p-4 card-panel rounded-2xl shrink-0">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm">
-                  <GridIcon />
-                </div>
+                <div className="w-10 h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-sm"><GridIcon /></div>
                 <div className="flex flex-col">
-                  <h1 className="font-extrabold text-xl text-slate-900 leading-tight tracking-tight">BINGO</h1>
-                  <span className="text-xs text-slate-500 font-medium">5x5 Classic Edition</span>
+                  <h1 className="font-extrabold text-xl text-slate-900 dark:text-white leading-tight tracking-tight">BINGO</h1>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">5x5 Classic Edition</span>
                 </div>
               </div>
-              <button onClick={onToggleMute} className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 transition-colors">
+              <button onClick={onToggleMute} className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors">
                 <VolumeIcon muted={isMuted} />
               </button>
             </div>
-
-            <div className="flex justify-between items-center bg-slate-50 p-2 rounded-xl border border-slate-100">
+            <div className="flex justify-between items-center bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-100 dark:border-zinc-700">
               {BINGO_LETTERS.map((letter) => {
                 const isUnlocked = playerLetters.includes(letter);
                 return (
-                  <div key={letter} className={`flex-1 mx-0.5 aspect-square max-w-[40px] rounded-lg flex items-center justify-center font-black text-lg transition-all duration-300 ${isUnlocked ? 'bg-blue-600 text-white shadow-md animate-pop' : 'bg-slate-200 text-slate-400'}`}>
+                  <div key={letter} className={`flex-1 mx-0.5 aspect-square max-w-[40px] rounded-lg flex items-center justify-center font-black text-lg transition-all duration-300 ${isUnlocked ? 'bg-blue-600 text-white shadow-md animate-pop' : 'bg-slate-200 dark:bg-zinc-700 text-slate-400 dark:text-slate-500'}`}>
                     {letter}
                   </div>
                 );
               })}
             </div>
-
             {gamePhase === 'playing' && (
               <div className="flex items-center justify-between pt-1">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2.5 h-2.5 rounded-full ${isMyTurn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300'}`} />
-                  <span className={`font-semibold text-sm ${isMyTurn ? 'text-emerald-600' : 'text-slate-500'}`}>
+                  <div className={`w-2.5 h-2.5 rounded-full ${isMyTurn ? 'bg-emerald-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
+                  <span className={`font-semibold text-sm ${isMyTurn ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-500 dark:text-slate-400'}`}>
                     {isMyTurn ? 'Your turn to pick' : `Waiting for ${opponentName}...`}
                   </span>
                 </div>
-                <div className="flex items-center gap-1 text-slate-500 font-bold text-xs tracking-widest">
+                <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400 font-bold text-xs tracking-widest">
                   {opponentName}: 
-                  <span className="text-blue-600 ml-1">{BINGO_LETTERS.slice(0, opponentLettersCount).join('')}</span>
-                  <span className="text-slate-300">{BINGO_LETTERS.slice(opponentLettersCount).join('')}</span>
+                  <span className="text-blue-600 dark:text-blue-400 ml-1">{BINGO_LETTERS.slice(0, opponentLettersCount).join('')}</span>
+                  <span className="text-slate-300 dark:text-slate-600">{BINGO_LETTERS.slice(opponentLettersCount).join('')}</span>
                 </div>
               </div>
             )}
@@ -270,7 +209,6 @@
 
       function BingoGrid({ grid, crossedNumbers, completedLines, gamePhase, isMyTurn, selectedSetupIdx, onCellClick, lastCrossedNumber }) {
         const crossedSet = crossedNumbers instanceof Set ? crossedNumbers : new Set(crossedNumbers);
-
         const getLineCoords = (pattern) => {
           if (pattern.type === 'row') return { x1: '5%', y1: `${(pattern.index + 0.5) * 20}%`, x2: '95%', y2: `${(pattern.index + 0.5) * 20}%` };
           if (pattern.type === 'col') return { x1: `${(pattern.index + 0.5) * 20}%`, y1: '5%', x2: `${(pattern.index + 0.5) * 20}%`, y2: '95%' };
@@ -287,16 +225,16 @@
                 const isCrossed = val && crossedSet.has(val);
                 const isSelected = gamePhase === 'setup' && selectedSetupIdx === idx;
                 const isJustCrossed = val && lastCrossedNumber === val;
-
+                
                 let btnClass = "relative bingo-cell flex items-center justify-center rounded-xl font-black text-xl sm:text-2xl transition-all duration-200 select-none overflow-hidden ";
                 if (gamePhase === 'setup') {
-                  if (isSelected) btnClass += "bg-blue-100 text-blue-700 ring-2 ring-blue-500 shadow-sm z-10";
-                  else if (val) btnClass += "bg-white text-slate-800 border border-slate-200 shadow-sm";
-                  else btnClass += "bg-slate-50 text-slate-400 border border-dashed border-slate-300";
+                  if (isSelected) btnClass += "bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 ring-2 ring-blue-500 shadow-sm z-10";
+                  else if (val) btnClass += "bg-white dark:bg-zinc-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-zinc-700 shadow-sm";
+                  else btnClass += "bg-slate-50 dark:bg-zinc-900/50 text-slate-400 dark:text-slate-600 border border-dashed border-slate-300 dark:border-zinc-700";
                 } else {
-                  if (isCrossed) btnClass += "bg-slate-100 text-slate-400 border border-slate-200";
-                  else if (isMyTurn && val) btnClass += "bg-white text-slate-800 border border-slate-200 shadow-sm hover:border-blue-400 hover:text-blue-600 cursor-pointer active:scale-95";
-                  else btnClass += "bg-white text-slate-700 border border-slate-200 shadow-sm opacity-90 cursor-not-allowed";
+                  if (isCrossed) btnClass += "bg-slate-100 dark:bg-zinc-900/80 text-slate-400 dark:text-zinc-600 border border-slate-200 dark:border-zinc-800";
+                  else if (isMyTurn && val) btnClass += "bg-white dark:bg-zinc-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-zinc-700 shadow-sm hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer active:scale-95";
+                  else btnClass += "bg-white dark:bg-zinc-800 text-slate-700 dark:text-slate-400 border border-slate-200 dark:border-zinc-700 shadow-sm opacity-90 cursor-not-allowed";
                 }
 
                 return (
@@ -311,20 +249,10 @@
                 );
               })}
             </div>
-            
             {completedLines.length > 0 && (
               <svg className="absolute inset-0 w-full h-full pointer-events-none z-30 p-2 sm:p-3">
-                <defs>
-                  {/* gradientUnits="userSpaceOnUse" is CRITICAL to fix the 0-height bounding box bug for horizontal lines */}
-                  <linearGradient id="lineGlow" x1="0" y1="0" x2="100%" y2="100%" gradientUnits="userSpaceOnUse">
-                    <stop offset="0%" stopColor="#3b82f6" />
-                    <stop offset="100%" stopColor="#8b5cf6" />
-                  </linearGradient>
-                </defs>
-                {completedLines.map((pattern) => {
-                  const coords = getLineCoords(pattern);
-                  return <line key={pattern.id} {...coords} stroke="url(#lineGlow)" strokeWidth="8" strokeLinecap="round" className="opacity-70 animate-pop drop-shadow-md" />;
-                })}
+                <defs><linearGradient id="lineGlow" x1="0" y1="0" x2="100%" y2="100%" gradientUnits="userSpaceOnUse"><stop offset="0%" stopColor="#3b82f6" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient></defs>
+                {completedLines.map(pattern => <line key={pattern.id} {...getLineCoords(pattern)} stroke="url(#lineGlow)" strokeWidth="8" strokeLinecap="round" className="opacity-70 animate-pop drop-shadow-md" />)}
               </svg>
             )}
           </div>
@@ -335,32 +263,27 @@
         const placed = new Set(grid.filter(n => n));
         const remaining = Array.from({ length: 25 }, (_, i) => i + 1).filter(n => !placed.has(n));
         const isComplete = isValidGrid(grid);
-
         return (
           <div className="w-full max-w-md mx-auto flex flex-col gap-3 p-4 card-panel rounded-2xl shrink-0 mt-3">
             <div className="flex justify-between items-center">
-              <h3 className="font-bold text-sm text-slate-700">Setup Grid <span className="font-normal text-slate-500 ml-1">({placed.size}/25)</span></h3>
+              <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300">Setup Grid <span className="font-normal text-slate-500 dark:text-slate-400 ml-1">({placed.size}/25)</span></h3>
               <div className="flex gap-2">
-                <button onClick={onRandomize} className="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 text-xs font-semibold transition">Random</button>
-                <button onClick={onClear} className="px-3 py-1.5 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 text-xs font-semibold transition">Clear</button>
+                <button onClick={onRandomize} className="px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-zinc-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-zinc-700 text-xs font-semibold transition">Random</button>
+                <button onClick={onClear} className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 text-xs font-semibold transition">Clear</button>
               </div>
             </div>
-            
             {!isComplete && (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap gap-1.5 justify-start">
                   {remaining.map(num => (
-                    <button key={num} onClick={() => onSelectNumberForCell(num)} className="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-700 font-bold text-sm hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition shadow-sm">
+                    <button key={num} onClick={() => onSelectNumberForCell(num)} className="w-8 h-8 rounded-lg bg-white dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 font-bold text-sm hover:border-blue-400 dark:hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition shadow-sm">
                       {num}
                     </button>
                   ))}
                 </div>
               </div>
             )}
-            
-            <button onClick={onReady} disabled={!isComplete || isWaitingForPeer} className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-sm transition-all ${
-              isWaitingForPeer ? 'bg-blue-100 text-blue-500' : isComplete ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20' : 'bg-slate-100 text-slate-400'
-            }`}>
+            <button onClick={onReady} disabled={!isComplete || isWaitingForPeer} className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-sm transition-all ${isWaitingForPeer ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400' : isComplete ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500'}`}>
               {isWaitingForPeer ? 'WAITING FOR PEER...' : isReady ? 'START GAME' : 'FILL ALL 25 BOXES'}
             </button>
           </div>
@@ -371,58 +294,41 @@
         const [activeTab, setActiveTab] = useState('host');
         const [joinCodeInput, setJoinCodeInput] = useState('');
         const [copied, setCopied] = useState(false);
-
         if (!isOpen) return null;
-        
-        const copyLink = () => {
-          if (!roomId) return;
-          navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?room=${roomId}`);
-          setCopied(true); setTimeout(() => setCopied(false), 2000);
-        };
+        const copyLink = () => { if (!roomId) return; navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?room=${roomId}`); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
-            <div className="relative w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-6 shadow-xl animate-pop">
-              <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-              <h2 className="font-extrabold text-xl text-slate-900 mb-5 flex items-center gap-2"><UsersIcon/> Multiplayer</h2>
-              
-              <div className="flex bg-slate-100 p-1 rounded-xl mb-6">
-                <button onClick={() => setActiveTab('host')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === 'host' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Host Room</button>
-                <button onClick={() => setActiveTab('join')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === 'join' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>Join Room</button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm">
+            <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xl animate-pop">
+              <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+              <h2 className="font-extrabold text-xl text-slate-900 dark:text-white mb-5 flex items-center gap-2"><UsersIcon/> Multiplayer</h2>
+              <div className="flex bg-slate-100 dark:bg-zinc-800 p-1 rounded-xl mb-6">
+                <button onClick={() => setActiveTab('host')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === 'host' ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Host Room</button>
+                <button onClick={() => setActiveTab('join')} className={`flex-1 py-2 text-sm font-bold rounded-lg transition ${activeTab === 'join' ? 'bg-white dark:bg-zinc-700 text-slate-900 dark:text-white shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}>Join Room</button>
               </div>
-
               {activeTab === 'host' && (
                 <div>
                   {!roomId ? (
                     <button onClick={onHostRoom} className="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-sm transition">CREATE ROOM</button>
                   ) : (
-                    <div className="flex flex-col gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                    <div className="flex flex-col gap-4 p-4 bg-slate-50 dark:bg-zinc-800/50 rounded-xl border border-slate-100 dark:border-zinc-700 text-center">
                       <div>
-                        <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Room Code</span>
-                        <div className="font-black text-4xl text-slate-800 tracking-widest mt-1">{roomId}</div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider">Room Code</span>
+                        <div className="font-black text-4xl text-slate-800 dark:text-slate-100 tracking-widest mt-1">{roomId}</div>
                       </div>
-                      <p className={`text-sm font-medium ${connectionStatus === 'connected' ? 'text-emerald-600' : 'text-blue-500 animate-pulse'}`}>
-                        {connectionStatus === 'connected' ? '✓ Peer Connected!' : 'Waiting for guest to join...'}
-                      </p>
-                      <button onClick={copyLink} className="py-2.5 bg-white text-sm font-bold rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm transition">
-                        {copied ? '✓ Link Copied!' : 'Copy Invite Link'}
-                      </button>
+                      <p className={`text-sm font-medium ${connectionStatus === 'connected' ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-500 dark:text-blue-400 animate-pulse'}`}>{connectionStatus === 'connected' ? '✓ Peer Connected!' : 'Waiting for guest...'}</p>
+                      <button onClick={copyLink} className="py-2.5 bg-white dark:bg-zinc-800 text-sm font-bold rounded-lg border border-slate-200 dark:border-zinc-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-zinc-700 shadow-sm transition">{copied ? '✓ Link Copied!' : 'Copy Invite Link'}</button>
                     </div>
                   )}
                 </div>
               )}
-
               {activeTab === 'join' && (
                 <form onSubmit={(e) => { e.preventDefault(); if (joinCodeInput.trim()) onJoinRoom(joinCodeInput); }} className="flex flex-col gap-4">
                   <div>
-                    <label className="text-xs text-slate-500 font-semibold uppercase tracking-wider ml-1">Enter 5-Digit Code</label>
-                    <input type="text" placeholder="e.g. 59231" value={joinCodeInput} onChange={e => setJoinCodeInput(e.target.value)} maxLength="5" className="mt-1 w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 font-black text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
+                    <label className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider ml-1">Enter 5-Digit Code</label>
+                    <input type="text" placeholder="e.g. 59231" value={joinCodeInput} onChange={e => setJoinCodeInput(e.target.value)} maxLength="5" className="mt-1 w-full px-4 py-3 bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 rounded-xl text-slate-800 dark:text-white font-black text-center text-2xl tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500/50" />
                   </div>
-                  <button type="submit" disabled={!joinCodeInput.trim() || connectionStatus === 'connecting'} className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl disabled:opacity-50 shadow-sm transition">
-                    {connectionStatus === 'connecting' ? 'CONNECTING...' : 'JOIN GAME'}
-                  </button>
+                  <button type="submit" disabled={!joinCodeInput.trim() || connectionStatus === 'connecting'} className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl disabled:opacity-50 shadow-sm transition">{connectionStatus === 'connecting' ? 'CONNECTING...' : 'JOIN GAME'}</button>
                   {connectionStatus === 'error' && <p className="text-sm text-red-500 text-center font-semibold">Connection failed. Check code.</p>}
                 </form>
               )}
@@ -431,45 +337,60 @@
         );
       }
 
-      function GameOverModal({ isOpen, isWinner, winnerName, myLinesCount, opponentLinesCount, totalTurns, onRematch, onMainMenu }) {
-        useEffect(() => { if (isOpen && isWinner && window.confetti) window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } }); }, [isOpen, isWinner]);
+      function GameOverModal({ isOpen, result, winnerName, myLinesCount, opponentLinesCount, totalTurns, onRematch, onMainMenu }) {
+        useEffect(() => { if (isOpen && (result === 'win' || result === 'tie') && window.confetti) window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } }); }, [isOpen, result]);
         if (!isOpen) return null;
+        let title = "GAME OVER", color = "text-slate-700 dark:text-slate-200", desc = `${winnerName} got BINGO before you.`;
+        if (result === 'win') { title = "YOU WON!"; color = "text-emerald-500"; desc = "Congratulations, you got BINGO!"; }
+        else if (result === 'tie') { title = "IT'S A TIE!"; color = "text-blue-500"; desc = "Both players got BINGO simultaneously!"; }
+
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
-            <div className="relative w-full max-w-sm bg-white border border-slate-200 rounded-2xl p-6 text-center shadow-xl animate-pop">
-              <div className="font-black text-3xl mb-2">{isWinner ? <span className="text-emerald-500">YOU WON!</span> : <span className="text-slate-700">GAME OVER</span>}</div>
-              <p className="text-sm text-slate-500 mb-6">{isWinner ? 'Congratulations, you got BINGO!' : `${winnerName} got BINGO before you.`}</p>
-              
-              <div className="flex flex-col gap-2 p-4 bg-slate-50 rounded-xl border border-slate-100 text-sm mb-6">
-                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
-                  <span className="text-slate-600 font-medium">Your Lines</span>
-                  <span className="font-bold text-blue-600 text-base">{myLinesCount} / 5</span>
-                </div>
-                <div className="flex justify-between items-center border-b border-slate-200 py-2">
-                  <span className="text-slate-600 font-medium">Opponent Lines</span>
-                  <span className="font-bold text-slate-800 text-base">{opponentLinesCount} / 5</span>
-                </div>
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-slate-600 font-medium">Total Turns</span>
-                  <span className="font-bold text-slate-800 text-base">{totalTurns}</span>
-                </div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 dark:bg-black/60 backdrop-blur-sm">
+            <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 text-center shadow-xl animate-pop">
+              <div className={`font-black text-3xl mb-2 ${color}`}>{title}</div>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">{desc}</p>
+              <div className="flex flex-col gap-2 p-4 bg-slate-50 dark:bg-zinc-800 rounded-xl border border-slate-100 dark:border-zinc-700 text-sm mb-6">
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-zinc-700 pb-2"><span className="text-slate-600 dark:text-slate-400 font-medium">Your Lines</span><span className="font-bold text-blue-600 text-base">{myLinesCount} / 5</span></div>
+                <div className="flex justify-between items-center border-b border-slate-200 dark:border-zinc-700 py-2"><span className="text-slate-600 dark:text-slate-400 font-medium">Opponent Lines</span><span className="font-bold text-slate-800 dark:text-slate-200 text-base">{opponentLinesCount} / 5</span></div>
+                <div className="flex justify-between items-center pt-2"><span className="text-slate-600 dark:text-slate-400 font-medium">Total Turns</span><span className="font-bold text-slate-800 dark:text-slate-200 text-base">{totalTurns}</span></div>
               </div>
-              
               <div className="flex flex-col gap-3">
                 <button onClick={onRematch} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">PLAY AGAIN</button>
-                <button onClick={onMainMenu} className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl transition">MAIN MENU</button>
+                <button onClick={onMainMenu} className="w-full py-3 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition">MAIN MENU</button>
               </div>
             </div>
           </div>
         );
       }
 
+      function StatsModal({ isOpen, onClose, stats }) {
+        if (!isOpen) return null;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm">
+            <div className="relative w-full max-w-xs bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 text-center shadow-xl animate-pop">
+              <button onClick={onClose} className="absolute top-4 right-4 text-slate-400 hover:text-slate-700 dark:hover:text-slate-300"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+              <h2 className="font-extrabold text-xl text-slate-900 dark:text-white mb-6 flex items-center justify-center gap-2"><TrophyIcon/> Lifetime Stats</h2>
+              <div className="grid grid-cols-3 gap-2 mb-6">
+                <div className="flex flex-col p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl border border-emerald-100 dark:border-emerald-900/30"><span className="text-2xl font-black text-emerald-600 dark:text-emerald-400">{stats.wins}</span><span className="text-[10px] font-bold text-emerald-600/70 uppercase">Wins</span></div>
+                <div className="flex flex-col p-3 bg-red-50 dark:bg-red-900/20 rounded-xl border border-red-100 dark:border-red-900/30"><span className="text-2xl font-black text-red-600 dark:text-red-400">{stats.losses}</span><span className="text-[10px] font-bold text-red-600/70 uppercase">Losses</span></div>
+                <div className="flex flex-col p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-900/30"><span className="text-2xl font-black text-blue-600 dark:text-blue-400">{stats.ties}</span><span className="text-[10px] font-bold text-blue-600/70 uppercase">Ties</span></div>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Stats are stored locally in your browser.</p>
+            </div>
+          </div>
+        );
+      }
+
       function App() {
+        // App State
+        const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('bingo_theme') === 'dark');
+        const [stats, setStats] = useState(() => { const s = localStorage.getItem('bingo_stats'); return s ? JSON.parse(s) : { wins: 0, losses: 0, ties: 0 }; });
+        const [isStatsOpen, setIsStatsOpen] = useState(false);
+
         const [grid, setGrid] = useState(() => generateRandomGrid());
         const [selectedSetupIdx, setSelectedSetupIdx] = useState(0);
         const [gamePhase, setGamePhase] = useState('setup');
         
-        // Mode selector states
         const [gameMode, setGameMode] = useState('ai');
         const [isMyTurn, setIsMyTurn] = useState(true);
         const [crossedNumbers, setCrossedNumbers] = useState(new Set());
@@ -486,7 +407,8 @@
         const [aiGrid, setAiGrid] = useState(() => generateRandomGrid());
         const [isMuted, setIsMuted] = useState(false);
         const [opponentLettersCount, setOpponentLettersCount] = useState(0);
-        const [isWinner, setIsWinner] = useState(false);
+        
+        const [gameOverResult, setGameOverResult] = useState(null);
         const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
 
         const peerRef = useRef(null);
@@ -494,17 +416,42 @@
         const peerRoleRef = useRef(null);
         const myEval = evaluateGrid(grid, crossedNumbers);
 
-        // Disconnect gracefully if mode changes
+        // Dark mode effect
+        useEffect(() => {
+          if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('bingo_theme', 'dark'); }
+          else { document.documentElement.classList.remove('dark'); localStorage.setItem('bingo_theme', 'light'); }
+        }, [isDarkMode]);
+
+        // Tie logic resolution
+        const handleGameOver = useCallback((result) => {
+          if (gamePhase === 'gameover') return;
+          setGamePhase('gameover'); setGameOverResult(result); setIsGameOverModalOpen(true);
+          if (result === 'win' || result === 'tie') playSound('victory'); else playSound('defeat');
+          setStats(prev => {
+            const key = result === 'win' ? 'wins' : result === 'loss' ? 'losses' : 'ties';
+            const next = { ...prev, [key]: prev[key] + 1 };
+            localStorage.setItem('bingo_stats', JSON.stringify(next)); return next;
+          });
+        }, [gamePhase]);
+
+        useEffect(() => {
+          if (gamePhase !== 'playing') return;
+          const myWin = myEval.isWin, oppWin = opponentLettersCount >= 5;
+          if (myWin && oppWin) { handleGameOver('tie'); }
+          else if (oppWin && !myWin) { handleGameOver('loss'); }
+          else if (myWin && !oppWin) {
+            // Wait shortly to see if opponent also completed bingo on this exact turn
+            const timer = setTimeout(() => handleGameOver('win'), 500);
+            return () => clearTimeout(timer);
+          }
+        }, [myEval.isWin, opponentLettersCount, gamePhase, handleGameOver]);
+
         const handleModeSelect = (mode) => {
           setGameMode(mode);
           if (mode === 'ai') {
             if (peerRef.current) peerRef.current.destroy();
-            setRoomId(null);
-            setConnectionStatus('disconnected');
-            setOpponentName('AI Bot');
-          } else {
-            setIsRoomModalOpen(true);
-          }
+            setRoomId(null); setConnectionStatus('disconnected'); setOpponentName('AI Bot');
+          } else { setIsRoomModalOpen(true); }
         };
 
         useEffect(() => {
@@ -518,11 +465,7 @@
           const roomParam = params.get('room');
           if (roomParam) {
             handleModeSelect('p2p');
-            // Slight delay to allow modal to render before attempting join visually
-            setTimeout(() => {
-               // We don't auto-join here to prevent loops, but we prefill the input in the modal
-               setIsRoomModalOpen(true);
-            }, 100);
+            setTimeout(() => { setIsRoomModalOpen(true); }, 100);
           }
         }, []);
 
@@ -530,95 +473,33 @@
           playSound('cross'); setLastCrossedNumber(num); setTotalTurns(p => p + 1);
           setCrossedNumbers(prev => {
             const nextSet = new Set(prev); nextSet.add(num);
-            const playerEval = evaluateGrid(grid, nextSet);
-            let oppLinesCount = opponentLettersCount;
-            if (gameMode === 'ai') {
-              oppLinesCount = evaluateGrid(aiGrid, nextSet).count;
-              setOpponentLettersCount(oppLinesCount);
-            }
-
+            if (gameMode === 'ai') setOpponentLettersCount(evaluateGrid(aiGrid, nextSet).count);
             if (wasMyMove) {
               setIsMyTurn(false);
-              if (gameMode === 'ai') {
-                setTimeout(() => {
-                  const aiChoice = getSmartAIMove(aiGrid, nextSet);
-                  if (aiChoice) { applyNumberCross(aiChoice, false); setIsMyTurn(true); }
-                }, 800);
-              } else if (connRef.current && connRef.current.open) {
-                // Send move BEFORE evaluating win so opponent sees the completed line
-                connRef.current.send({ type: 'MARK_NUMBER', value: num });
-              }
-            } else {
-              setIsMyTurn(true);
-            }
-
-            if (playerEval.isWin || oppLinesCount >= 5) {
-              setGamePhase('gameover');
-              const playerWon = playerEval.isWin;
-              setIsWinner(playerWon); setIsGameOverModalOpen(true);
-              playSound(playerWon ? 'victory' : 'defeat');
-              return nextSet;
-            }
-
+              if (gameMode === 'ai') { setTimeout(() => { const aiChoice = getSmartAIMove(aiGrid, nextSet); if (aiChoice) { applyNumberCross(aiChoice, false); setIsMyTurn(true); } }, 800); }
+              else if (connRef.current && connRef.current.open) { connRef.current.send({ type: 'MARK_NUMBER', value: num }); }
+            } else { setIsMyTurn(true); }
             return nextSet;
           });
-        }, [grid, aiGrid, gameMode, opponentLettersCount]);
+        }, [grid, aiGrid, gameMode]);
 
         const setupConnection = (connection, role) => {
-          connRef.current = connection;
-          peerRoleRef.current = role;
+          connRef.current = connection; peerRoleRef.current = role;
           let hasOpened = false;
-
-          const onOpen = () => {
-            if (hasOpened) return;
-            hasOpened = true;
-            setConnectionStatus('connected');
-            setGameMode('p2p');
-            setOpponentName(role === 'host' ? 'Guest Player' : 'Host Player');
-            setIsRoomModalOpen(false);
-          };
-
-          if (connection.open) onOpen();
-          else connection.on('open', onOpen);
-
+          const onOpen = () => { if (hasOpened) return; hasOpened = true; setConnectionStatus('connected'); setGameMode('p2p'); setOpponentName(role === 'host' ? 'Guest Player' : 'Host Player'); setIsRoomModalOpen(false); };
+          if (connection.open) onOpen(); else connection.on('open', onOpen);
           connection.on('data', (data) => {
             if (!data) return;
             if (data.type === 'READY') setOpponentReady(true);
-            else if (data.type === 'START_GAME') {
-              setGamePhase('playing');
-              setIsMyTurn(data.currentTurn === peerRoleRef.current);
-            }
+            else if (data.type === 'START_GAME') { setGamePhase('playing'); setIsMyTurn(data.currentTurn === peerRoleRef.current); }
             else if (data.type === 'MARK_NUMBER') applyNumberCross(data.value, false);
-            else if (data.type === 'SYNC_STATE') {
-              setOpponentLettersCount(data.count);
-              if (data.isWin) {
-                setGamePhase('gameover'); setIsWinner(false); setIsGameOverModalOpen(true); playSound('defeat');
-              }
-            }
+            else if (data.type === 'SYNC_STATE') setOpponentLettersCount(data.count);
             else if (data.type === 'REMATCH_REQUEST') resetGameForRematch();
           });
-
-          const handleDisconnect = () => {
-            if (hasOpened) {
-              setConnectionStatus('disconnected');
-              alert('Opponent disconnected or network dropped.');
-              hasOpened = false;
-            }
-          };
-
+          const handleDisconnect = () => { if (hasOpened) { setConnectionStatus('disconnected'); alert('Opponent disconnected or network dropped.'); hasOpened = false; } };
           connection.on('close', handleDisconnect);
-          
-          if (connection.peerConnection) {
-            connection.peerConnection.oniceconnectionstatechange = () => {
-              const state = connection.peerConnection.iceConnectionState;
-              if (state === 'disconnected' || state === 'failed' || state === 'closed') handleDisconnect();
-            };
-          }
-          
-          connection.on('error', (err) => {
-            console.error('Connection error:', err);
-            setConnectionStatus('error');
-          });
+          if (connection.peerConnection) connection.peerConnection.oniceconnectionstatechange = () => { const state = connection.peerConnection.iceConnectionState; if (state === 'disconnected' || state === 'failed' || state === 'closed') handleDisconnect(); };
+          connection.on('error', (err) => { console.error('Connection error:', err); setConnectionStatus('error'); });
         };
 
         const handleHostRoom = () => {
@@ -626,41 +507,24 @@
           const cleanCode = `${Math.floor(10000 + Math.random() * 90000)}`;
           const peer = new Peer(cleanCode, PEER_CONFIG);
           peerRef.current = peer;
-
-          peer.on('open', (id) => {
-            setRoomId(id); setConnectionStatus('connecting'); peerRoleRef.current = 'host';
-          });
+          peer.on('open', (id) => { setRoomId(id); setConnectionStatus('connecting'); peerRoleRef.current = 'host'; });
           peer.on('connection', (conn) => { setupConnection(conn, 'host'); });
-          peer.on('error', (err) => {
-            if (err.type === 'unavailable-id') handleHostRoom(); // retry
-          });
+          peer.on('error', (err) => { if (err.type === 'unavailable-id') handleHostRoom(); });
         };
 
         const handleJoinRoom = (code) => {
           if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
-          const cleanCode = code.trim();
-          
           const peer = new Peer(undefined, PEER_CONFIG);
-          peerRef.current = peer;
-          setConnectionStatus('connecting');
-
-          peer.on('open', () => {
-            const conn = peer.connect(cleanCode, { reliable: true });
-            setupConnection(conn, 'guest');
-          });
-
-          peer.on('error', (err) => {
-            console.error('Join peer error:', err);
-            setConnectionStatus('error');
-          });
+          peerRef.current = peer; setConnectionStatus('connecting');
+          peer.on('open', () => { setupConnection(peer.connect(code.trim(), { reliable: true }), 'guest'); });
+          peer.on('error', (err) => { console.error('Join peer error:', err); setConnectionStatus('error'); });
         };
 
         const handleReadyToPlay = () => {
           playSound('pop'); setMyReady(true);
           if (gameMode === 'ai') {
             setAiGrid(generateRandomGrid()); setOpponentReady(true); setGamePhase('playing');
-            setIsMyTurn(true); setOpponentName('AI Bot'); setCrossedNumbers(new Set());
-            setOpponentLettersCount(0); setTotalTurns(0);
+            setIsMyTurn(true); setOpponentName('AI Bot'); setCrossedNumbers(new Set()); setOpponentLettersCount(0); setTotalTurns(0);
           } else {
             if (connRef.current && connRef.current.open) connRef.current.send({ type: 'READY' });
             if (opponentReady && peerRoleRef.current === 'host') {
@@ -679,17 +543,21 @@
 
         return (
           <div className="w-full h-full flex flex-col items-center px-4 pt-3 pb-4 max-w-lg mx-auto">
-            {/* Bold Mode Selector on Top */}
-            {gamePhase === 'setup' && (
-              <div className="w-full flex bg-slate-200/60 p-1 rounded-xl mb-4 shrink-0 shadow-inner">
-                <button onClick={() => handleModeSelect('ai')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${gameMode === 'ai' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                  <MonitorIcon /> VS Computer
-                </button>
-                <button onClick={() => handleModeSelect('p2p')} className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold rounded-lg transition-all ${gameMode === 'p2p' ? 'bg-white text-blue-700 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
-                  <UsersIcon /> Play Online
-                </button>
+            {/* Top Bar Navigation */}
+            <div className="w-full flex justify-between items-center mb-3">
+              <div className="flex gap-2">
+                {gamePhase === 'setup' && (
+                  <div className="flex bg-slate-200/60 dark:bg-zinc-800/60 p-1 rounded-xl shadow-inner">
+                    <button onClick={() => handleModeSelect('ai')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${gameMode === 'ai' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}><MonitorIcon /> AI</button>
+                    <button onClick={() => handleModeSelect('p2p')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${gameMode === 'p2p' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}><UsersIcon /> P2P</button>
+                  </div>
+                )}
               </div>
-            )}
+              <div className="flex gap-2">
+                <button onClick={() => setIsStatsOpen(true)} className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition"><TrophyIcon /></button>
+                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition">{isDarkMode ? <SunIcon /> : <MoonIcon />}</button>
+              </div>
+            </div>
             
             <BingoHeader playerLetters={myEval.letters} opponentLettersCount={opponentLettersCount} isMyTurn={isMyTurn} gamePhase={gamePhase} opponentName={opponentName} isMuted={isMutedGlobal} onToggleMute={() => { isMutedGlobal = !isMutedGlobal; setIsMuted(isMutedGlobal); }} />
             
@@ -710,14 +578,18 @@
             </main>
             
             <RoomModal isOpen={isRoomModalOpen} onClose={() => { setIsRoomModalOpen(false); if (connectionStatus === 'disconnected') setGameMode('ai'); }} roomId={roomId} connectionStatus={connectionStatus} onHostRoom={handleHostRoom} onJoinRoom={handleJoinRoom} gameMode={gameMode} />
+            <StatsModal isOpen={isStatsOpen} onClose={() => setIsStatsOpen(false)} stats={stats} />
 
-            <GameOverModal isOpen={isGameOverModalOpen} isWinner={isWinner} winnerName={isWinner ? 'You' : opponentName} myLinesCount={myEval.count} opponentLinesCount={opponentLettersCount} totalTurns={totalTurns} onRematch={() => {
+            <GameOverModal isOpen={isGameOverModalOpen} result={gameOverResult} winnerName={opponentName} myLinesCount={myEval.count} opponentLinesCount={opponentLettersCount} totalTurns={totalTurns} onRematch={() => {
               resetGameForRematch(); if (gameMode === 'p2p' && connRef.current) connRef.current.send({ type: 'REMATCH_REQUEST' });
-            }} onMainMenu={() => { setIsGameOverModalOpen(false); setGamePhase('setup'); handleModeSelect('ai'); }} />
+            }} onMainMenu={() => { 
+              setIsGameOverModalOpen(false); setGamePhase('setup'); 
+              setCrossedNumbers(new Set()); setLastCrossedNumber(null); setOpponentLettersCount(0); // FIXED RESET BUG
+              handleModeSelect('ai'); 
+            }} />
           </div>
         );
       }
-
       ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
   </body>

@@ -84,7 +84,7 @@ class PeerManager {
     this.roomId = cleanId;
 
     try {
-      this.peer = new Peer(PEER_CONFIG);
+      this.peer = new Peer(undefined, PEER_CONFIG);
 
       this.peer.on('open', () => {
         this.conn = this.peer.connect(cleanId, {
@@ -108,10 +108,17 @@ class PeerManager {
 
     let hasOpened = false;
 
-    this.conn.on('open', () => {
+    const handleOpen = () => {
+      if (hasOpened) return;
       hasOpened = true;
       this.emit('connected', { role: this.role, roomId: this.roomId });
-    });
+    };
+
+    if (this.conn.open) {
+      handleOpen();
+    } else {
+      this.conn.on('open', handleOpen);
+    }
 
     this.conn.on('data', (data) => {
       if (data && data.type) {

@@ -40,7 +40,7 @@
 
     <style>
       html, body {
-        width: 100%; height: 100%; overflow: hidden; margin: 0; padding: 0;
+        width: 100%; min-height: 100vh; overflow-x: hidden; margin: 0; padding: 0;
         transition: background-color 0.3s, color 0.3s;
       }
       body { background-color: #f8fafc; color: #0f172a; }
@@ -363,6 +363,24 @@
         );
       }
 
+      function RulesModal({ isOpen, onClose }) {
+        if (!isOpen) return null;
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 dark:bg-black/60 backdrop-blur-sm overflow-y-auto">
+            <div className="relative w-full max-w-sm bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-2xl p-6 shadow-xl animate-pop m-auto">
+              <h2 className="font-extrabold text-xl text-slate-900 dark:text-white mb-4">How to Play Bingo 5x5</h2>
+              <ul className="text-sm text-slate-600 dark:text-slate-300 space-y-3 mb-6">
+                <li><strong className="text-blue-600 dark:text-blue-400">1. Setup:</strong> Fill the 5x5 grid with numbers 1 to 25. You can randomize or pick manually.</li>
+                <li><strong className="text-blue-600 dark:text-blue-400">2. Gameplay:</strong> Take turns selecting numbers. When you select a number, it's crossed out for both players.</li>
+                <li><strong className="text-blue-600 dark:text-blue-400">3. Scoring:</strong> Complete a full row, column, or diagonal to earn a line.</li>
+                <li><strong className="text-blue-600 dark:text-blue-400">4. Winning:</strong> The first player to complete 5 lines gets B-I-N-G-O and wins!</li>
+              </ul>
+              <button onClick={onClose} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">GOT IT! LET'S PLAY</button>
+            </div>
+          </div>
+        );
+      }
+
       function StatsModal({ isOpen, onClose, stats }) {
         if (!isOpen) return null;
         return (
@@ -386,6 +404,7 @@
         const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('bingo_theme') === 'dark');
         const [stats, setStats] = useState(() => { const s = localStorage.getItem('bingo_stats'); return s ? JSON.parse(s) : { wins: 0, losses: 0, ties: 0 }; });
         const [isStatsOpen, setIsStatsOpen] = useState(false);
+        const [isRulesOpen, setIsRulesOpen] = useState(() => localStorage.getItem('bingo_rules_seen') !== 'true');
 
         const [grid, setGrid] = useState(() => generateRandomGrid());
         const [selectedSetupIdx, setSelectedSetupIdx] = useState(0);
@@ -542,7 +561,7 @@
         };
 
         return (
-          <div className="w-full h-full flex flex-col items-center px-4 pt-3 pb-4 max-w-lg mx-auto">
+          <div className="w-full min-h-screen flex flex-col items-center px-4 pt-3 pb-8 max-w-lg mx-auto">
             {/* Top Bar Navigation */}
             <div className="w-full flex justify-between items-center mb-3">
               <div className="flex gap-2">
@@ -579,6 +598,7 @@
             
             <RoomModal isOpen={isRoomModalOpen} onClose={() => { setIsRoomModalOpen(false); if (connectionStatus === 'disconnected') setGameMode('ai'); }} roomId={roomId} connectionStatus={connectionStatus} onHostRoom={handleHostRoom} onJoinRoom={handleJoinRoom} gameMode={gameMode} />
             <StatsModal isOpen={isStatsOpen} onClose={() => setIsStatsOpen(false)} stats={stats} />
+            <RulesModal isOpen={isRulesOpen} onClose={() => { setIsRulesOpen(false); localStorage.setItem('bingo_rules_seen', 'true'); }} />
 
             <GameOverModal isOpen={isGameOverModalOpen} result={gameOverResult} winnerName={opponentName} myLinesCount={myEval.count} opponentLinesCount={opponentLettersCount} totalTurns={totalTurns} onRematch={() => {
               resetGameForRematch(); if (gameMode === 'p2p' && connRef.current) connRef.current.send({ type: 'REMATCH_REQUEST' });

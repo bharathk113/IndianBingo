@@ -120,8 +120,10 @@
 
       function generateRandomGrid() {
         const numbers = Array.from({ length: 25 }, (_, i) => i + 1);
+        const array = new Uint32Array(1);
         for (let i = numbers.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
+          window.crypto.getRandomValues(array);
+          const j = array[0] % (i + 1);
           [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
         }
         return numbers;
@@ -491,6 +493,11 @@
         const localStreamRef = useRef(null);
         const currentMediaCallRef = useRef(null);
         const remoteAudioRef = useRef(null);
+        
+        const isMicEnabledRef = useRef(isMicEnabled);
+        useEffect(() => { isMicEnabledRef.current = isMicEnabled; }, [isMicEnabled]);
+        const gameModeRef = useRef(gameMode);
+        useEffect(() => { gameModeRef.current = gameMode; }, [gameMode]);
 
         const peerRef = useRef(null);
         const connRef = useRef(null);
@@ -512,12 +519,26 @@
           call.on('stream', (remoteStream) => {
             if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
           });
+          call.on('close', () => {
+            if (currentMediaCallRef.current === call) {
+              currentMediaCallRef.current = null;
+              if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
+            }
+            if (isMicEnabledRef.current && localStreamRef.current && gameModeRef.current === 'p2p' && peerRef.current && connRef.current) {
+              setTimeout(() => {
+                if (isMicEnabledRef.current && !currentMediaCallRef.current && peerRef.current && connRef.current) {
+                  const newCall = peerRef.current.call(connRef.current.peer, localStreamRef.current);
+                  setupMediaCall(newCall);
+                }
+              }, 500);
+            }
+          });
         }, []);
 
         const toggleMic = async () => {
           if (!localStreamRef.current) {
             try {
-              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, sampleRate: 48000, channelCount: 1 } });
               localStreamRef.current = stream;
               setIsMicEnabled(true);
               if (!isVoiceNudgeSeen) {
@@ -534,10 +555,13 @@
               alert('Microphone access is required for voice chat.');
             }
           } else {
-            const track = localStreamRef.current.getAudioTracks()[0];
-            if (track) {
-              track.enabled = !isMicEnabled;
-              setIsMicEnabled(track.enabled);
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+            setIsMicEnabled(false);
+            
+            if (currentMediaCallRef.current) {
+              currentMediaCallRef.current.close();
+              currentMediaCallRef.current = null;
             }
           }
         };

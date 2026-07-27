@@ -17,7 +17,6 @@
     <meta property="og:url" content="https://bharathk113.github.io/IndianBingo/" />
     <meta property="og:title" content="Indian 5x5 Bingo | Play Online Multiplayer" />
     <meta property="og:description" content="Play the traditional Indian 5x5 Bingo game online for free! Connect directly with friends using P2P multiplayer or play against AI." />
-    <!-- Replace this with a real screenshot URL if you upload one -->
     <meta property="og:image" content="https://bharathk113.github.io/IndianBingo/og-image.jpg" />
 
     <meta name="twitter:card" content="summary_large_image" />
@@ -198,6 +197,7 @@
       const GridIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>;
       const UsersIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
       const MonitorIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="3" rx="2"/><line x1="8" x2="16" y1="21" y2="21"/><line x1="12" x2="12" y1="17" y2="21"/></svg>;
+      const GlobeIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/><path d="M2 12h20"/></svg>;
       const SunIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>;
       const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
       const TrophyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
@@ -206,6 +206,7 @@
       const MicOffIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
 
       function BingoHeader({ playerLetters, opponentLettersCount, isMyTurn, gamePhase, opponentName, isMuted, onToggleMute, gameMode, isMicEnabled, onToggleMic, isVoiceNudgeSeen }) {
+        const canUseMic = gameMode === 'p2p' || gameMode === 'public' || gameMode === 'public_ai';
         return (
           <div className="w-full max-w-md mx-auto flex flex-col gap-3 p-4 card-panel rounded-2xl shrink-0">
             <div className="flex items-center justify-between">
@@ -217,7 +218,7 @@
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                {gameMode === 'p2p' && (
+                {canUseMic && (
                   <div className="relative">
                     <button onClick={onToggleMic} title="Toggle Voice Chat" className={`p-2 rounded-lg transition-colors ${isMicEnabled ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300'}`}>
                       {isMicEnabled ? <MicIcon /> : <MicOffIcon />}
@@ -316,12 +317,13 @@
         );
       }
 
-      function SetupPalette({ grid, selectedIdx, onRandomize, onClear, onSelectNumberForCell, onReady, isReady, isWaitingForPeer }) {
+      function SetupPalette({ grid, selectedIdx, onRandomize, onClear, onSelectNumberForCell, onReady, myReady, isWaitingForPeer, gameMode, onModeSelect, connectionStatus }) {
         const placed = new Set(grid.filter(n => n));
         const remaining = Array.from({ length: 25 }, (_, i) => i + 1).filter(n => !placed.has(n));
         const isComplete = isValidGrid(grid);
+        
         return (
-          <div className="w-full max-w-md mx-auto flex flex-col gap-3 p-4 card-panel rounded-2xl shrink-0 mt-3">
+          <div className="w-full max-w-md mx-auto flex flex-col gap-3 p-4 card-panel rounded-2xl shrink-0 mt-3 animate-pop">
             <div className="flex justify-between items-center">
               <h3 className="font-bold text-sm text-slate-700 dark:text-slate-300">Setup Grid <span className="font-normal text-slate-500 dark:text-slate-400 ml-1">({placed.size}/25)</span></h3>
               <div className="flex gap-2">
@@ -329,7 +331,8 @@
                 <button onClick={onClear} className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 text-xs font-semibold transition">Clear</button>
               </div>
             </div>
-            {!isComplete && (
+            
+            {!isComplete ? (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap gap-1.5 justify-start">
                   {remaining.map(num => (
@@ -338,16 +341,37 @@
                     </button>
                   ))}
                 </div>
+                <button disabled className="w-full py-3.5 rounded-xl font-bold text-sm bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500 transition mt-2">FILL ALL 25 BOXES</button>
               </div>
-            )}
-            <button onClick={onReady} disabled={!isComplete || isWaitingForPeer} className={`w-full py-3.5 rounded-xl font-bold text-sm shadow-sm transition-all ${isWaitingForPeer ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-500 dark:text-blue-400' : isComplete ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20' : 'bg-slate-100 dark:bg-zinc-800 text-slate-400 dark:text-slate-500'}`}>
-              {isWaitingForPeer ? 'WAITING FOR PEER...' : isReady ? 'START GAME' : 'FILL ALL 25 BOXES'}
-            </button>
+            ) : isWaitingForPeer || connectionStatus === 'searching' ? (
+              <div className="flex flex-col justify-center items-center py-5 gap-3">
+                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                 <span className="font-bold text-sm text-slate-500 dark:text-slate-400 tracking-wider uppercase">
+                   {connectionStatus === 'searching' ? 'Searching for match...' : 'Waiting for peer...'}
+                 </span>
+              </div>
+            ) : gameMode === 'select' ? (
+               <div className="flex flex-col gap-2 w-full mt-2 animate-pop">
+                 <button onClick={() => onModeSelect('ai')} className="w-full py-3.5 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-200 font-bold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
+                   <MonitorIcon /> Play Computer
+                 </button>
+                 <button onClick={() => onModeSelect('public')} className="w-full py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
+                   <GlobeIcon /> Public Match
+                 </button>
+                 <button onClick={() => onModeSelect('p2p')} className="w-full py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm rounded-xl shadow-sm flex items-center justify-center gap-2 transition">
+                   <UsersIcon /> Play with Friend
+                 </button>
+               </div>
+            ) : !myReady ? (
+               <button onClick={onReady} className="w-full py-3.5 rounded-xl font-bold text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-blue-500/20 transition-all mt-2">
+                 START GAME
+               </button>
+            ) : null}
           </div>
         );
       }
 
-      function RoomModal({ isOpen, onClose, roomId, connectionStatus, onHostRoom, onJoinRoom, gameMode }) {
+      function RoomModal({ isOpen, onClose, roomId, connectionStatus, onHostRoom, onJoinRoom }) {
         const [activeTab, setActiveTab] = useState('host');
         const [joinCodeInput, setJoinCodeInput] = useState('');
         const [copied, setCopied] = useState(false);
@@ -394,7 +418,7 @@
         );
       }
 
-      function GameOverModal({ isOpen, result, winnerName, myLinesCount, opponentLinesCount, totalTurns, onRematch, onMainMenu }) {
+      function GameOverModal({ isOpen, result, winnerName, myLinesCount, opponentLinesCount, totalTurns, onRematch, onFindNewMatch, onMainMenu, gameMode }) {
         useEffect(() => { if (isOpen && (result === 'win' || result === 'tie') && window.confetti) window.confetti({ particleCount: 150, spread: 80, origin: { y: 0.5 } }); }, [isOpen, result]);
         if (!isOpen) return null;
         let title = "GAME OVER", color = "text-slate-700 dark:text-slate-200", desc = `${winnerName} got BINGO before you.`;
@@ -412,7 +436,11 @@
                 <div className="flex justify-between items-center pt-2"><span className="text-slate-600 dark:text-slate-400 font-medium">Total Turns</span><span className="font-bold text-slate-800 dark:text-slate-200 text-base">{totalTurns}</span></div>
               </div>
               <div className="flex flex-col gap-3">
-                <button onClick={onRematch} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">PLAY AGAIN</button>
+                {gameMode === 'public' || gameMode === 'public_ai' ? (
+                  <button onClick={onFindNewMatch} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">FIND NEW MATCH</button>
+                ) : (
+                  <button onClick={onRematch} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-sm transition">PLAY AGAIN</button>
+                )}
                 <button onClick={onMainMenu} className="w-full py-3 bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-700 dark:text-slate-300 font-bold rounded-xl transition">MAIN MENU</button>
               </div>
             </div>
@@ -467,7 +495,7 @@
         const [selectedSetupIdx, setSelectedSetupIdx] = useState(0);
         const [gamePhase, setGamePhase] = useState('setup');
         
-        const [gameMode, setGameMode] = useState('ai');
+        const [gameMode, setGameMode] = useState('select'); // select, ai, p2p, public, public_ai
         const [isMyTurn, setIsMyTurn] = useState(true);
         const [crossedNumbers, setCrossedNumbers] = useState(new Set());
         const [lastCrossedNumber, setLastCrossedNumber] = useState(null);
@@ -475,7 +503,7 @@
 
         const [myReady, setMyReady] = useState(false);
         const [opponentReady, setOpponentReady] = useState(false);
-        const [opponentName, setOpponentName] = useState('AI Bot');
+        const [opponentName, setOpponentName] = useState('Opponent');
         const [roomId, setRoomId] = useState(null);
         const [connectionStatus, setConnectionStatus] = useState('disconnected');
         const [isRoomModalOpen, setIsRoomModalOpen] = useState(false);
@@ -502,6 +530,7 @@
         const peerRef = useRef(null);
         const connRef = useRef(null);
         const peerRoleRef = useRef(null);
+        const fallbackTriggered = useRef(false);
         const myEval = evaluateGrid(grid, crossedNumbers);
 
         // Dark mode effect
@@ -524,7 +553,7 @@
               currentMediaCallRef.current = null;
               if (remoteAudioRef.current) remoteAudioRef.current.srcObject = null;
             }
-            if (isMicEnabledRef.current && localStreamRef.current && gameModeRef.current === 'p2p' && peerRef.current && connRef.current) {
+            if (isMicEnabledRef.current && localStreamRef.current && (gameModeRef.current === 'p2p' || gameModeRef.current === 'public') && peerRef.current && connRef.current) {
               setTimeout(() => {
                 if (isMicEnabledRef.current && !currentMediaCallRef.current && peerRef.current && connRef.current) {
                   const newCall = peerRef.current.call(connRef.current.peer, localStreamRef.current);
@@ -545,8 +574,7 @@
                 setIsVoiceNudgeSeen(true);
                 localStorage.setItem('voice_nudge_seen', 'true');
               }
-              // If connected and no active call, initiate one
-              if (gameMode === 'p2p' && connRef.current && connRef.current.peer && peerRef.current) {
+              if ((gameMode === 'p2p' || gameMode === 'public') && connRef.current && connRef.current.peer && peerRef.current) {
                 const call = peerRef.current.call(connRef.current.peer, stream);
                 setupMediaCall(call);
               }
@@ -605,17 +633,8 @@
           }
         }, [myEval.isWin, opponentLettersCount, gamePhase, handleGameOver]);
 
-        const handleModeSelect = (mode) => {
-          setGameMode(mode);
-          if (mode === 'ai') {
-            if (peerRef.current) peerRef.current.destroy();
-            stopMedia();
-            setRoomId(null); setConnectionStatus('disconnected'); setOpponentName('AI Bot');
-          } else { setIsRoomModalOpen(true); }
-        };
-
         useEffect(() => {
-          if (gameMode === 'p2p' && connRef.current && connRef.current.open) {
+          if ((gameMode === 'p2p' || gameMode === 'public') && connRef.current && connRef.current.open) {
             connRef.current.send({ type: 'SYNC_STATE', count: myEval.count, isWin: myEval.isWin });
           }
         }, [myEval.count, myEval.isWin, gameMode]);
@@ -623,8 +642,8 @@
         useEffect(() => {
           const params = new URLSearchParams(window.location.search);
           const roomParam = params.get('room');
-          if (roomParam) {
-            handleModeSelect('p2p');
+          if (roomParam && gamePhase === 'setup') {
+            setGameMode('p2p');
             setTimeout(() => { setIsRoomModalOpen(true); }, 100);
           }
         }, []);
@@ -633,20 +652,35 @@
           playSound('cross'); setLastCrossedNumber(num); setTotalTurns(p => p + 1);
           setCrossedNumbers(prev => {
             const nextSet = new Set(prev); nextSet.add(num);
-            if (gameMode === 'ai') setOpponentLettersCount(evaluateGrid(aiGrid, nextSet).count);
+            if (gameModeRef.current === 'ai' || gameModeRef.current === 'public_ai') { 
+              setOpponentLettersCount(evaluateGrid(aiGrid, nextSet).count); 
+            }
             if (wasMyMove) {
               setIsMyTurn(false);
-              if (gameMode === 'ai') { setTimeout(() => { const aiChoice = getSmartAIMove(aiGrid, nextSet); if (aiChoice) { applyNumberCross(aiChoice, false); setIsMyTurn(true); } }, 800); }
+              if (gameModeRef.current === 'ai' || gameModeRef.current === 'public_ai') { 
+                const delay = gameModeRef.current === 'public_ai' ? Math.floor(Math.random() * 1200) + 800 : 800;
+                setTimeout(() => { 
+                   const aiChoice = getSmartAIMove(aiGrid, nextSet); 
+                   if (aiChoice) { applyNumberCross(aiChoice, false); setIsMyTurn(true); } 
+                }, delay); 
+              }
               else if (connRef.current && connRef.current.open) { connRef.current.send({ type: 'MARK_NUMBER', value: num }); }
             } else { setIsMyTurn(true); }
             return nextSet;
           });
-        }, [grid, aiGrid, gameMode]);
+        }, [aiGrid]);
 
         const setupConnection = (connection, role) => {
           connRef.current = connection; peerRoleRef.current = role;
           let hasOpened = false;
-          const onOpen = () => { if (hasOpened) return; hasOpened = true; setConnectionStatus('connected'); setGameMode('p2p'); setOpponentName(role === 'host' ? 'Guest Player' : 'Host Player'); setIsRoomModalOpen(false); };
+          const onOpen = () => { 
+            if (hasOpened) return; 
+            hasOpened = true; 
+            setConnectionStatus('connected'); 
+            if (gameModeRef.current !== 'public') setGameMode('p2p');
+            setOpponentName(role === 'host' ? 'Guest Player' : 'Host Player'); 
+            setIsRoomModalOpen(false); 
+          };
           if (connection.open) onOpen(); else connection.on('open', onOpen);
           connection.on('data', (data) => {
             if (!data) return;
@@ -670,6 +704,73 @@
           });
         };
 
+        const startSilentAI = useCallback(() => {
+           fallbackTriggered.current = true;
+           if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
+           setConnectionStatus('connected');
+           setAiGrid(generateRandomGrid()); 
+           setOpponentReady(true); 
+           setGamePhase('playing');
+           setIsMyTurn(true); 
+           const randomNum = Math.floor(1000 + Math.random() * 9000);
+           setOpponentName(`Player${randomNum}`); 
+           setCrossedNumbers(new Set()); 
+           setOpponentLettersCount(0); 
+           setTotalTurns(0);
+           setGameMode('public_ai');
+        }, []);
+
+        const handlePublicMatch = useCallback(() => {
+          setConnectionStatus('searching');
+          setGameMode('public');
+          setMyReady(true);
+          fallbackTriggered.current = false;
+          
+          if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
+          
+          const fallbackTimer = setTimeout(() => {
+             if (!fallbackTriggered.current && gameModeRef.current === 'public') {
+               startSilentAI();
+             }
+          }, 2500);
+
+          const peer = new Peer(undefined, PEER_CONFIG);
+          peerRef.current = peer;
+          setupMediaListener(peer);
+          
+          peer.on('open', () => {
+             if (fallbackTriggered.current) return;
+             const roomId = `bingo-pub-${Math.floor(Math.random() * 20) + 1}`;
+             const conn = peer.connect(roomId, { reliable: true });
+             let connOpened = false;
+             
+             conn.on('open', () => {
+                 if (fallbackTriggered.current) return;
+                 connOpened = true;
+                 clearTimeout(fallbackTimer);
+                 setupConnection(conn, 'guest');
+                 conn.send({ type: 'READY' });
+             });
+             
+             setTimeout(() => {
+                 if (!connOpened && !fallbackTriggered.current) {
+                     peer.destroy();
+                     const hostPeer = new Peer(roomId, PEER_CONFIG);
+                     peerRef.current = hostPeer;
+                     setupMediaListener(hostPeer);
+                     hostPeer.on('connection', (c) => {
+                         if (fallbackTriggered.current) return;
+                         clearTimeout(fallbackTimer);
+                         setupConnection(c, 'host');
+                     });
+                     hostPeer.on('error', () => {
+                         // ID already taken, just wait for fallback
+                     });
+                 }
+             }, 800);
+          });
+        }, [startSilentAI]);
+
         const handleHostRoom = () => {
           if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
           const cleanCode = `${Math.floor(10000 + Math.random() * 90000)}`;
@@ -690,12 +791,25 @@
           peer.on('error', (err) => { console.error('Join peer error:', err); setConnectionStatus('error'); });
         };
 
+        const handleModeSelect = (mode) => {
+          if (mode === 'ai') {
+            setGameMode('ai');
+            playSound('pop'); setMyReady(true);
+            setAiGrid(generateRandomGrid()); setOpponentReady(true); setGamePhase('playing');
+            setIsMyTurn(true); setOpponentName('Computer'); setCrossedNumbers(new Set()); setOpponentLettersCount(0); setTotalTurns(0);
+          } else if (mode === 'public') {
+            playSound('pop');
+            handlePublicMatch();
+          } else if (mode === 'p2p') {
+            playSound('pop');
+            setGameMode('p2p');
+            setIsRoomModalOpen(true);
+          }
+        };
+
         const handleReadyToPlay = () => {
           playSound('pop'); setMyReady(true);
-          if (gameMode === 'ai') {
-            setAiGrid(generateRandomGrid()); setOpponentReady(true); setGamePhase('playing');
-            setIsMyTurn(true); setOpponentName('AI Bot'); setCrossedNumbers(new Set()); setOpponentLettersCount(0); setTotalTurns(0);
-          } else {
+          if (gameMode === 'p2p') {
             if (connRef.current && connRef.current.open) connRef.current.send({ type: 'READY' });
             if (opponentReady && peerRoleRef.current === 'host') {
               const firstTurn = Math.random() > 0.5 ? 'host' : 'guest';
@@ -706,9 +820,28 @@
           }
         };
 
+        useEffect(() => {
+          // If we are host and opponent just became ready while we are ready
+          if (gameMode === 'p2p' && myReady && opponentReady && peerRoleRef.current === 'host' && gamePhase === 'setup') {
+              const firstTurn = Math.random() > 0.5 ? 'host' : 'guest';
+              connRef.current.send({ type: 'START_GAME', currentTurn: firstTurn });
+              setGamePhase('playing'); setIsMyTurn(firstTurn === 'host');
+              setCrossedNumbers(new Set()); setOpponentLettersCount(0); setTotalTurns(0);
+          }
+        }, [myReady, opponentReady, gameMode, gamePhase]);
+
         const resetGameForRematch = () => {
           setCrossedNumbers(new Set()); setLastCrossedNumber(null); setGamePhase('setup');
           setMyReady(false); setOpponentReady(false); setIsGameOverModalOpen(false); setOpponentLettersCount(0);
+        };
+
+        const handleFindNewMatch = () => {
+           setCrossedNumbers(new Set()); setLastCrossedNumber(null); setOpponentLettersCount(0);
+           setIsGameOverModalOpen(false);
+           setGrid(generateRandomGrid());
+           setSelectedSetupIdx(0);
+           setGamePhase('setup');
+           handlePublicMatch();
         };
 
         return (
@@ -716,15 +849,7 @@
             <audio ref={remoteAudioRef} autoPlay hidden />
             
             {/* Top Bar Navigation */}
-            <div className="w-full flex justify-between items-center mb-3">
-              <div className="flex gap-2">
-                {gamePhase === 'setup' && (
-                  <div className="flex bg-slate-200/60 dark:bg-zinc-800/60 p-1 rounded-xl shadow-inner">
-                    <button onClick={() => handleModeSelect('ai')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${gameMode === 'ai' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}><MonitorIcon /> AI</button>
-                    <button onClick={() => handleModeSelect('p2p')} className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${gameMode === 'p2p' ? 'bg-white dark:bg-zinc-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'}`}><UsersIcon /> P2P</button>
-                  </div>
-                )}
-              </div>
+            <div className="w-full flex justify-end items-center mb-3">
               <div className="flex gap-2">
                 <button onClick={() => setIsStatsOpen(true)} title="Lifetime Stats" className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition"><TrophyIcon /></button>
                 <button onClick={() => setIsDarkMode(!isDarkMode)} title="Toggle Dark Mode" className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition">{isDarkMode ? <SunIcon /> : <MoonIcon />}</button>
@@ -745,21 +870,23 @@
                   if (existingIdx !== -1) newGrid[existingIdx] = null; newGrid[selectedSetupIdx] = num; setGrid(newGrid);
                   const nextEmpty = newGrid.findIndex((v, i) => i > selectedSetupIdx && v === null);
                   if (nextEmpty !== -1) setSelectedSetupIdx(nextEmpty); else { const firstEmpty = newGrid.findIndex(v => v === null); if (firstEmpty !== -1) setSelectedSetupIdx(firstEmpty); }
-                }} onReady={handleReadyToPlay} isReady={isValidGrid(grid)} isWaitingForPeer={myReady && !opponentReady && gameMode === 'p2p'} />
+                }} onReady={handleReadyToPlay} myReady={myReady} isWaitingForPeer={myReady && !opponentReady && gameMode === 'p2p'} gameMode={gameMode} onModeSelect={handleModeSelect} connectionStatus={connectionStatus} />
               )}
             </main>
             
-            <RoomModal isOpen={isRoomModalOpen} onClose={() => { setIsRoomModalOpen(false); if (connectionStatus === 'disconnected') setGameMode('ai'); }} roomId={roomId} connectionStatus={connectionStatus} onHostRoom={handleHostRoom} onJoinRoom={handleJoinRoom} gameMode={gameMode} />
+            <RoomModal isOpen={isRoomModalOpen} onClose={() => { setIsRoomModalOpen(false); if (connectionStatus === 'disconnected') setGameMode('select'); }} roomId={roomId} connectionStatus={connectionStatus} onHostRoom={handleHostRoom} onJoinRoom={handleJoinRoom} />
             <StatsModal isOpen={isStatsOpen} onClose={() => setIsStatsOpen(false)} stats={stats} />
             <RulesModal isOpen={isRulesOpen} onClose={() => { setIsRulesOpen(false); localStorage.setItem('bingo_rules_seen', 'true'); }} />
 
             <GameOverModal isOpen={isGameOverModalOpen} result={gameOverResult} winnerName={opponentName} myLinesCount={myEval.count} opponentLinesCount={opponentLettersCount} totalTurns={totalTurns} onRematch={() => {
               resetGameForRematch(); if (gameMode === 'p2p' && connRef.current) connRef.current.send({ type: 'REMATCH_REQUEST' });
-            }} onMainMenu={() => { 
+            }} onFindNewMatch={handleFindNewMatch} onMainMenu={() => { 
               setIsGameOverModalOpen(false); setGamePhase('setup'); 
               setCrossedNumbers(new Set()); setLastCrossedNumber(null); setOpponentLettersCount(0);
-              handleModeSelect('ai'); 
-            }} />
+              setGameMode('select'); setMyReady(false); setOpponentReady(false);
+              setConnectionStatus('disconnected'); stopMedia();
+              if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
+            }} gameMode={gameMode} />
           </div>
         );
       }

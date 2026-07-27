@@ -794,9 +794,7 @@
         const handleModeSelect = (mode) => {
           if (mode === 'ai') {
             setGameMode('ai');
-            playSound('pop'); setMyReady(true);
-            setAiGrid(generateRandomGrid()); setOpponentReady(true); setGamePhase('playing');
-            setIsMyTurn(true); setOpponentName('Computer'); setCrossedNumbers(new Set()); setOpponentLettersCount(0); setTotalTurns(0);
+            handleReadyToPlay('ai');
           } else if (mode === 'public') {
             playSound('pop');
             handlePublicMatch();
@@ -807,9 +805,13 @@
           }
         };
 
-        const handleReadyToPlay = () => {
+        const handleReadyToPlay = (modeOverride) => {
+          const currentMode = typeof modeOverride === 'string' ? modeOverride : gameMode;
           playSound('pop'); setMyReady(true);
-          if (gameMode === 'p2p') {
+          if (currentMode === 'ai') {
+            setAiGrid(generateRandomGrid()); setOpponentReady(true); setGamePhase('playing');
+            setIsMyTurn(true); setOpponentName('Computer'); setCrossedNumbers(new Set()); setOpponentLettersCount(0); setTotalTurns(0);
+          } else if (currentMode === 'p2p') {
             if (connRef.current && connRef.current.open) connRef.current.send({ type: 'READY' });
             if (opponentReady && peerRoleRef.current === 'host') {
               const firstTurn = Math.random() > 0.5 ? 'host' : 'guest';

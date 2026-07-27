@@ -3,8 +3,46 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, shrink-to-fit=no" />
-    <title>Bingo 5x5</title>
-    <meta name="description" content="Clean, modern, P2P Indian 5x5 Bingo" />
+    
+    <!-- SEO Optimization -->
+    <title>Indian 5x5 Bingo | Play Online P2P Multiplayer Free</title>
+    <meta name="description" content="Play the traditional Indian 5x5 Bingo game online for free! Connect directly with friends using P2P multiplayer or play against a smart AI. Clean, modern, serverless bingo experience." />
+    <meta name="keywords" content="indian bingo, bingo 5x5, online bingo, p2p bingo, multiplayer bingo, free bingo game, bingo with friends, serverless bingo, react bingo" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://bharathk113.github.io/IndianBingo/" />
+
+    <!-- Open Graph / Social Media Meta Tags -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://bharathk113.github.io/IndianBingo/" />
+    <meta property="og:title" content="Indian 5x5 Bingo | Play Online Multiplayer" />
+    <meta property="og:description" content="Play the traditional Indian 5x5 Bingo game online for free! Connect directly with friends using P2P multiplayer or play against AI." />
+    <!-- Replace this with a real screenshot URL if you upload one -->
+    <meta property="og:image" content="https://bharathk113.github.io/IndianBingo/og-image.jpg" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Indian 5x5 Bingo | Play Online Multiplayer" />
+    <meta name="twitter:description" content="Play the traditional Indian 5x5 Bingo game online for free! Connect directly with friends using P2P multiplayer or play against AI." />
+
+    <!-- JSON-LD Structured Data for Google -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "VideoGame",
+      "name": "Indian 5x5 Bingo",
+      "description": "A serverless, peer-to-peer (P2P), mobile-first web app of the traditional Indian 5x5 paper-and-pen Bingo game.",
+      "url": "https://bharathk113.github.io/IndianBingo/",
+      "genre": "Board Game",
+      "playMode": ["SinglePlayer", "MultiPlayer"],
+      "applicationCategory": "Game",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
     
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%232563eb%22 stroke-width=%222.5%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22><rect width=%2218%22 height=%2218%22 x=%223%22 y=%223%22 rx=%222%22/><path d=%22M3 9h18M3 15h18M9 3v18M15 3v18%22/></svg>" />
 
@@ -162,8 +200,10 @@
       const MoonIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>;
       const TrophyIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>;
       const VolumeIcon = ({ muted }) => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{muted ? <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" x2="17" y1="9" y2="15"/><line x1="17" x2="23" y1="9" y2="15"/></> : <><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></>}</svg>;
+      const MicIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
+      const MicOffIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></svg>;
 
-      function BingoHeader({ playerLetters, opponentLettersCount, isMyTurn, gamePhase, opponentName, isMuted, onToggleMute }) {
+      function BingoHeader({ playerLetters, opponentLettersCount, isMyTurn, gamePhase, opponentName, isMuted, onToggleMute, gameMode, isMicEnabled, onToggleMic, isVoiceNudgeSeen }) {
         return (
           <div className="w-full max-w-md mx-auto flex flex-col gap-3 p-4 card-panel rounded-2xl shrink-0">
             <div className="flex items-center justify-between">
@@ -174,9 +214,24 @@
                   <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">5x5 Classic Edition</span>
                 </div>
               </div>
-              <button onClick={onToggleMute} className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors">
-                <VolumeIcon muted={isMuted} />
-              </button>
+              <div className="flex items-center gap-2">
+                {gameMode === 'p2p' && (
+                  <div className="relative">
+                    <button onClick={onToggleMic} title="Toggle Voice Chat" className={`p-2 rounded-lg transition-colors ${isMicEnabled ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400' : 'bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300'}`}>
+                      {isMicEnabled ? <MicIcon /> : <MicOffIcon />}
+                    </button>
+                    {!isVoiceNudgeSeen && (
+                      <span className="absolute -top-1.5 -right-1.5 flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                      </span>
+                    )}
+                  </div>
+                )}
+                <button onClick={onToggleMute} title="Toggle Game Sounds" className="p-2 rounded-lg bg-slate-100 dark:bg-zinc-800 hover:bg-slate-200 dark:hover:bg-zinc-700 text-slate-600 dark:text-slate-300 transition-colors">
+                  <VolumeIcon muted={isMuted} />
+                </button>
+              </div>
             </div>
             <div className="flex justify-between items-center bg-slate-50 dark:bg-zinc-800 p-2 rounded-xl border border-slate-100 dark:border-zinc-700">
               {BINGO_LETTERS.map((letter) => {
@@ -430,6 +485,13 @@
         const [gameOverResult, setGameOverResult] = useState(null);
         const [isGameOverModalOpen, setIsGameOverModalOpen] = useState(false);
 
+        // Voice Chat State
+        const [isMicEnabled, setIsMicEnabled] = useState(false);
+        const [isVoiceNudgeSeen, setIsVoiceNudgeSeen] = useState(() => localStorage.getItem('voice_nudge_seen') === 'true');
+        const localStreamRef = useRef(null);
+        const currentMediaCallRef = useRef(null);
+        const remoteAudioRef = useRef(null);
+
         const peerRef = useRef(null);
         const connRef = useRef(null);
         const peerRoleRef = useRef(null);
@@ -440,6 +502,61 @@
           if (isDarkMode) { document.documentElement.classList.add('dark'); localStorage.setItem('bingo_theme', 'dark'); }
           else { document.documentElement.classList.remove('dark'); localStorage.setItem('bingo_theme', 'light'); }
         }, [isDarkMode]);
+
+        // Voice Chat Logic
+        const setupMediaCall = useCallback((call) => {
+          if (currentMediaCallRef.current && currentMediaCallRef.current !== call) {
+            currentMediaCallRef.current.close();
+          }
+          currentMediaCallRef.current = call;
+          call.on('stream', (remoteStream) => {
+            if (remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
+          });
+        }, []);
+
+        const toggleMic = async () => {
+          if (!localStreamRef.current) {
+            try {
+              const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+              localStreamRef.current = stream;
+              setIsMicEnabled(true);
+              if (!isVoiceNudgeSeen) {
+                setIsVoiceNudgeSeen(true);
+                localStorage.setItem('voice_nudge_seen', 'true');
+              }
+              // If connected and no active call, initiate one
+              if (gameMode === 'p2p' && connRef.current && connRef.current.peer && peerRef.current) {
+                const call = peerRef.current.call(connRef.current.peer, stream);
+                setupMediaCall(call);
+              }
+            } catch (err) {
+              console.error('Mic access denied:', err);
+              alert('Microphone access is required for voice chat.');
+            }
+          } else {
+            const track = localStreamRef.current.getAudioTracks()[0];
+            if (track) {
+              track.enabled = !isMicEnabled;
+              setIsMicEnabled(track.enabled);
+            }
+          }
+        };
+
+        const stopMedia = useCallback(() => {
+          if (localStreamRef.current) {
+            localStreamRef.current.getTracks().forEach(track => track.stop());
+            localStreamRef.current = null;
+          }
+          if (currentMediaCallRef.current) {
+            currentMediaCallRef.current.close();
+            currentMediaCallRef.current = null;
+          }
+          setIsMicEnabled(false);
+        }, []);
+
+        useEffect(() => {
+          return () => stopMedia();
+        }, [stopMedia]);
 
         // Tie logic resolution
         const handleGameOver = useCallback((result) => {
@@ -459,7 +576,6 @@
           if (myWin && oppWin) { handleGameOver('tie'); }
           else if (oppWin && !myWin) { handleGameOver('loss'); }
           else if (myWin && !oppWin) {
-            // Wait shortly to see if opponent also completed bingo on this exact turn
             const timer = setTimeout(() => handleGameOver('win'), 500);
             return () => clearTimeout(timer);
           }
@@ -469,6 +585,7 @@
           setGameMode(mode);
           if (mode === 'ai') {
             if (peerRef.current) peerRef.current.destroy();
+            stopMedia();
             setRoomId(null); setConnectionStatus('disconnected'); setOpponentName('AI Bot');
           } else { setIsRoomModalOpen(true); }
         };
@@ -521,11 +638,20 @@
           connection.on('error', (err) => { console.error('Connection error:', err); setConnectionStatus('error'); });
         };
 
+        const setupMediaListener = (peer) => {
+          peer.on('call', (call) => {
+            if (localStreamRef.current) call.answer(localStreamRef.current);
+            else call.answer();
+            setupMediaCall(call);
+          });
+        };
+
         const handleHostRoom = () => {
           if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
           const cleanCode = `${Math.floor(10000 + Math.random() * 90000)}`;
           const peer = new Peer(cleanCode, PEER_CONFIG);
           peerRef.current = peer;
+          setupMediaListener(peer);
           peer.on('open', (id) => { setRoomId(id); setConnectionStatus('connecting'); peerRoleRef.current = 'host'; });
           peer.on('connection', (conn) => { setupConnection(conn, 'host'); });
           peer.on('error', (err) => { if (err.type === 'unavailable-id') handleHostRoom(); });
@@ -535,6 +661,7 @@
           if (peerRef.current) { try { peerRef.current.destroy(); } catch(e){} }
           const peer = new Peer(undefined, PEER_CONFIG);
           peerRef.current = peer; setConnectionStatus('connecting');
+          setupMediaListener(peer);
           peer.on('open', () => { setupConnection(peer.connect(code.trim(), { reliable: true }), 'guest'); });
           peer.on('error', (err) => { console.error('Join peer error:', err); setConnectionStatus('error'); });
         };
@@ -562,6 +689,8 @@
 
         return (
           <div className="w-full min-h-screen flex flex-col items-center px-4 pt-3 pb-8 max-w-lg mx-auto">
+            <audio ref={remoteAudioRef} autoPlay hidden />
+            
             {/* Top Bar Navigation */}
             <div className="w-full flex justify-between items-center mb-3">
               <div className="flex gap-2">
@@ -573,12 +702,12 @@
                 )}
               </div>
               <div className="flex gap-2">
-                <button onClick={() => setIsStatsOpen(true)} className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition"><TrophyIcon /></button>
-                <button onClick={() => setIsDarkMode(!isDarkMode)} className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition">{isDarkMode ? <SunIcon /> : <MoonIcon />}</button>
+                <button onClick={() => setIsStatsOpen(true)} title="Lifetime Stats" className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition"><TrophyIcon /></button>
+                <button onClick={() => setIsDarkMode(!isDarkMode)} title="Toggle Dark Mode" className="p-2 rounded-lg bg-slate-200/60 dark:bg-zinc-800/60 hover:bg-slate-300/60 dark:hover:bg-zinc-700/60 text-slate-600 dark:text-slate-300 transition">{isDarkMode ? <SunIcon /> : <MoonIcon />}</button>
               </div>
             </div>
             
-            <BingoHeader playerLetters={myEval.letters} opponentLettersCount={opponentLettersCount} isMyTurn={isMyTurn} gamePhase={gamePhase} opponentName={opponentName} isMuted={isMutedGlobal} onToggleMute={() => { isMutedGlobal = !isMutedGlobal; setIsMuted(isMutedGlobal); }} />
+            <BingoHeader playerLetters={myEval.letters} opponentLettersCount={opponentLettersCount} isMyTurn={isMyTurn} gamePhase={gamePhase} opponentName={opponentName} isMuted={isMutedGlobal} onToggleMute={() => { isMutedGlobal = !isMutedGlobal; setIsMuted(isMutedGlobal); }} gameMode={gameMode} isMicEnabled={isMicEnabled} onToggleMic={toggleMic} isVoiceNudgeSeen={isVoiceNudgeSeen} />
             
             <main className="w-full flex-1 flex flex-col justify-center min-h-0 mt-3 sm:mt-4">
               <BingoGrid grid={grid} crossedNumbers={crossedNumbers} completedLines={myEval.completedLines} gamePhase={gamePhase} isMyTurn={isMyTurn} selectedSetupIdx={selectedSetupIdx} onCellClick={(idx, num) => {
@@ -604,7 +733,7 @@
               resetGameForRematch(); if (gameMode === 'p2p' && connRef.current) connRef.current.send({ type: 'REMATCH_REQUEST' });
             }} onMainMenu={() => { 
               setIsGameOverModalOpen(false); setGamePhase('setup'); 
-              setCrossedNumbers(new Set()); setLastCrossedNumber(null); setOpponentLettersCount(0); // FIXED RESET BUG
+              setCrossedNumbers(new Set()); setLastCrossedNumber(null); setOpponentLettersCount(0);
               handleModeSelect('ai'); 
             }} />
           </div>
